@@ -162,9 +162,8 @@ make clean
 - The implementation uses one doubly linked list rather than separate Back and
   Forward stacks.
 
-## Team and Testing
+##Testing
 
-- Team responsibilities: see [`TEAM_DIVISION.md`](TEAM_DIVISION.md).
 - Test scenarios: see [`TEST_CASES.md`](TEST_CASES.md).
 
 ---
