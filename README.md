@@ -1,52 +1,176 @@
-# Browser History Management System (C11)
+<div align="center">
 
-A menu-driven console DSA project demonstrating browser-like navigation with one dynamically allocated doubly linked list. It does not open websites or use a real browser.
+# Browser History Management System
 
-## Build and run
+### A browser-navigation simulator built with C11 and Doubly Linked Lists
 
-**Windows (MinGW GCC, from this folder):**
+![Language](https://img.shields.io/badge/Language-C-blue)
+![Standard](https://img.shields.io/badge/Standard-C11-informational)
+![Core DSA](https://img.shields.io/badge/DSA-Doubly%20Linked%20List-success)
+![Project](https://img.shields.io/badge/Project-Academic%20%7C%20Team%20Based-orange)
+
+A menu-driven command-line application that simulates browser history navigation,
+including visiting pages, moving backward and forward, searching, deleting entries,
+and managing the current browsing session.
+
+</div>
+
+---
+
+## Overview
+
+The **Browser History Management System** is a Data Structures and Algorithms project
+implemented in **C11**. It uses a dynamically allocated **doubly linked list** to
+represent browsing history.
+
+Each visit is stored as a separate node. The `current` pointer tracks the selected
+page, while `prev` and `next` links support backward and forward navigation.
+
+> This is an educational console simulation. It stores URL strings and does not open
+> websites or control a real web browser.
+
+## Features
+
+- **Visit a page** – add a URL to browsing history. If no `://` scheme is supplied,
+  the program adds `https://`.
+- **Back and Forward** – navigate through the list using the current node's links.
+- **Branch cleanup** – visiting a new page after going Back removes the obsolete
+  forward history.
+- **View history** – display entries in chronological order.
+- **Search history** – find URL matches using case-insensitive partial searching.
+- **Delete an entry** – remove a selected history entry.
+- **Clear history** – clear all entries after confirmation.
+- **Current page and statistics** – display the selected page and history statistics.
+- **Memory management** – dynamically allocate nodes and free memory during deletion,
+  branch cleanup, and program exit.
+
+## Project Structure
+
+```text
+BrowserHistorySystem/
+├── history.h          # Structures, constants, shared declarations, prototypes
+├── history.c          # List state, input helpers, allocation and cleanup
+├── navigation.c       # Visit, Back, Forward and current-page operations
+├── search.c           # Case-insensitive URL search
+├── ui.c               # History display, deletion and statistics
+├── main.c             # Menu and application entry point
+├── Makefile           # Build and clean commands
+├── README.md          # Project documentation
+├── TEAM_DIVISION.md   # Team roles and responsibilities
+└── TEST_CASES.md      # Test scenarios
+```
+
+## Architecture
+
+The application is separated into modules so that navigation, list management,
+searching, and display operations remain organized.
+
+```mermaid
+flowchart TD
+    A["main.c<br/>Menu and control flow"] --> B["navigation.c<br/>Visit / Back / Forward"]
+    A --> C["search.c<br/>Search URLs"]
+    A --> D["ui.c<br/>Display / Delete / Statistics"]
+    B --> E["history.c<br/>Doubly linked list and memory management"]
+    C --> E
+    D --> E
+    E --> F["history.h<br/>Shared structure and function declarations"]
+```
+
+## Data Structure
+
+Each history entry is represented by a node:
+
+```c
+typedef struct HistoryNode {
+    char url[URL_MAX + 1];
+    time_t visited_at;
+    struct HistoryNode *prev;
+    struct HistoryNode *next;
+} HistoryNode;
+```
+
+The list maintains three important pointers:
+
+| Pointer | Purpose |
+|---|---|
+| `head` | First history entry |
+| `tail` | Last history entry |
+| `current` | Currently selected page |
+
+### How navigation works
+
+- **Visit:** create a node and link it into the list.
+- **Back:** move `current` to `current->prev`.
+- **Forward:** move `current` to `current->next`.
+- **Visit after Back:** free the nodes after `current`, then add the new page.
+- **Delete:** reconnect neighboring nodes, update list endpoints/current when needed,
+  and free the removed node.
+
+## Time Complexity
+
+Let `n` be the number of history entries, `k` the number of forward entries removed
+when visiting after Back, and `L` the URL/search comparison length.
+
+| Operation | Time complexity |
+|---|---:|
+| Visit at the current tail | O(1) |
+| Visit after Back | O(k) for branch cleanup; insertion is O(1) |
+| Back / Forward | O(1) |
+| Display history | O(n) |
+| Search | O(n × L) with naive substring comparison |
+| Delete by entry number | O(n) to locate + O(1) to unlink |
+| Clear all history | O(n) |
+| Space | O(n) |
+
+## Build and Run
+
+### Requirements
+
+- GCC compiler
+- Make (optional, for the Makefile workflow)
+
+### Windows (MinGW GCC / PowerShell)
+
+Open a terminal in the project folder and run:
+
 ```powershell
 gcc -std=c11 -Wall -Wextra -Wpedantic main.c history.c navigation.c search.c ui.c -o browser_history.exe
 .\browser_history.exe
 ```
-**Linux/macOS:** `make` then `./browser_history` (or use the GCC command above). `make clean` removes the executable.
 
-## Features
+### Linux / macOS
 
-- Visit URLs (adds `https://` when no `://` scheme is supplied), preserving each visit as its own entry.
-- Back/Forward by moving `current`, without deleting history.
-- Visiting after Back removes the obsolete forward branch.
-- Chronological display, case-insensitive partial search, numbered deletion, confirmed clear, current page, and navigation statistics.
-- Line-based input and allocation-failure handling; URL maximum is 255 characters.
+```bash
+make
+./browser_history
+```
 
-## Architecture
+To remove the generated executable:
 
-- `history.h`: structure, shared state declarations, constants and prototypes.
-- `history.c`: global list state, line/numeric input helpers, allocation, branch cleanup and full cleanup.
-- `navigation.c`: visit, Back, Forward and current-page display.
-- `search.c`: case-insensitive substring search.
-- `ui.c`: history display, numbered deletion and statistics.
-- `main.c`: menu loop and final cleanup.
+```bash
+make clean
+```
 
-## DSA explanation
+## Input and Limitations
 
-A **doubly linked list** stores nodes that each point to both their previous and next neighbors. `head` identifies the first entry, `tail` the last, and `current` the selected page. Back assigns `current = current->prev`; Forward assigns `current = current->next`, so both are O(1). A new visit after going Back frees all nodes after `current` before linking the new node, matching browser branching behavior. Deletion first reconnects the target node's neighbors, updates `head`/`tail` when needed, moves `current` to the next entry if possible (otherwise previous), then frees the target. Dynamic allocation lets the list grow as visits occur. Repeated URLs remain separate nodes because they represent separate visits and timestamps.
+- Maximum URL length: **255 characters**.
+- Timestamps use the local system time.
+- URLs are stored as entered, after trimming surrounding whitespace and optional
+  `https://` prefixing. This is not full URL validation.
+- Repeated URLs are stored as separate visits.
+- Entry numbering is chronological and starts at 1.
+- The implementation uses one doubly linked list rather than separate Back and
+  Forward stacks.
 
-Search scans each node and compares URL substrings without regard to letter case. It uses O(n) node visits; naive substring comparison may cost O(n × L), where L captures URL/search-term comparison length.
+## Team and Testing
 
-## Complexity
+- Team responsibilities: see [`TEAM_DIVISION.md`](TEAM_DIVISION.md).
+- Test scenarios: see [`TEST_CASES.md`](TEST_CASES.md).
 
-| Operation | Time |
-|---|---:|
-| Visit at current tail | O(1) |
-| Visit after Back | O(k), where k forward nodes are freed; insertion itself O(1) |
-| Back / Forward | O(1) |
-| Display history | O(n) |
-| Search | O(n × L) naive; often simplified to O(n) in introductory DSA |
-| Delete by entry number | O(n) locate + O(1) unlink |
-| Clear all | O(n) |
-| Space | O(n) for n visits |
+---
 
-## Important behavior and limitations
+<div align="center">
 
-Timestamps are local system time. URLs are stored as entered apart from trimming surrounding whitespace and optional `https://` prefixing; this is a teaching simulation, not URL validation. Entry numbering is chronological and starts at 1. This implementation intentionally uses a single list rather than separate back/forward stacks.
+**Built as a Data Structures and Algorithms project using C11.**
+
+</div>
