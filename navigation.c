@@ -1,0 +1,8 @@
+#include "history.h"
+#include <string.h>
+#include <ctype.h>
+static int has_scheme(const char *s){const char *p=strstr(s,"://");return p && p!=s;}
+void visit_page(void){char input[INPUT_MAX],url[URL_MAX+1];if(!read_line("Enter URL: ",input,sizeof input))return;size_t n=strlen(input);while(n&&isspace((unsigned char)input[n-1]))input[--n]='\0';char *start=input;while(*start&&isspace((unsigned char)*start))start++;if(!*start){puts("URL cannot be empty.");return;}const char *prefix=has_scheme(start)?"":"https://";size_t needed=strlen(prefix)+strlen(start);if(needed>URL_MAX){printf("URL too long (maximum %d characters).\n",URL_MAX);return;}memcpy(url,prefix,strlen(prefix));memcpy(url+strlen(prefix),start,strlen(start)+1);HistoryNode *node=create_node(url);if(!node){puts("Memory allocation failed; page not added.");return;}if(!head){head=tail=current=node;}else{free_forward_branch();node->prev=current;current->next=node;tail=current=node;}history_count++;printf("Visited: %s\n",current->url);}
+void go_back(void){if(!current){puts("History is empty.");return;}if(!current->prev){puts("No previous page.");return;}current=current->prev;printf("Back to: %s\n",current->url);}
+void go_forward(void){if(!current){puts("History is empty.");return;}if(!current->next){puts("No forward page.");return;}current=current->next;printf("Forward to: %s\n",current->url);}
+void show_current(void){if(!current){puts("No page is currently open.");return;}char stamp[32];struct tm *tm_info=localtime(&current->visited_at);if(tm_info)strftime(stamp,sizeof stamp,"%Y-%m-%d %H:%M:%S",tm_info);else strcpy(stamp,"unknown");printf("Current page: %s\nVisited at: %s\n",current->url,stamp);}
